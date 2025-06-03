@@ -1,0 +1,24 @@
+<div class="caravana-box" *ngIf="caravana">
+  <h3>📦 Caravana</h3>
+
+  <p *ngIf="caravana.nombre"><strong>Nombre:</strong> {{ caravana.nombre }}</p>
+  <p *ngIf="caravana.velocidad !== undefined"><strong>Velocidad:</strong> {{ caravana.velocidad }}</p>
+  <p *ngIf="caravana.cargaActual !== undefined && caravana.capacidadMaxCarga !== undefined">
+    <strong>Carga:</strong> {{ caravana.cargaActual }} / {{ caravana.capacidadMaxCarga }}
+  </p>
+  <p *ngIf="caravana.dinero !== undefined"><strong>Dinero:</strong> {{ caravana.dinero }} $</p>
+  <p *ngIf="caravana.puntosVidaActual !== undefined && caravana.puntosVidaMax !== undefined">
+    <strong>Vida:</strong> {{ caravana.puntosVidaActual }} / {{ caravana.puntosVidaMax }}
+  </p>
+  <p *ngIf="caravana.guardias !== undefined"><strong>Guardias:</strong> {{ caravana.guardias ? 'Sí' : 'No' }}</p>
+
+  <h4>🎮 Jugadores</h4>
+  <ul *ngIf="caravana.jugadores && caravana.jugadores.length > 0; else sinJugadores">
+    <li *ngFor="let jugador of caravana.jugadores">
+      ID: {{ jugador.id }}, Nombre: {{ jugador.nombre }}, Rol: {{ jugador.rol }}
+    </li>
+  </ul>
+  <ng-template #sinJugadores>
+    <p>No hay jugadores registrados.</p>
+  </ng-template>
+</div>

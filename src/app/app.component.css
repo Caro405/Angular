@@ -1,0 +1,24 @@
+.main-layout {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 1rem;
+  gap: 1rem;
+}
+
+.sidebar-left,
+.sidebar-right {
+  width: 20%;
+}
+
+.main-content {
+  width: 60%;
+}
+
+.ciudad-actual-box {
+  background-color: #8889c4;
+  color: white;
+  padding: 1rem;
+  border-radius: 10px;
+  box-shadow: 0 0 10px #90e0ef;
+}

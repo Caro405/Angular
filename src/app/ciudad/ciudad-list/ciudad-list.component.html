@@ -1,0 +1,61 @@
+<div class="container" *ngIf="ciudades.length > 0">
+  <h1>Ciudad List</h1>
+  <ul>
+    <li
+      *ngFor="let ciudad of ciudades"
+      (click)="mostrarDetalles(ciudad)"
+      [id]="'ciudad-' + ciudad.id"
+      [class.selected]="ciudadSeleccionada?.id === ciudad.id"
+    >
+      {{ ciudad.nombre }} - Impuestos: {{ ciudad.impuestos }}
+
+      <div *ngIf="ciudadSeleccionada && ciudadSeleccionada.id === ciudad.id" class="detalle-ciudad">
+        <h3>Detalles de la Ciudad</h3>
+        <p><strong>Nombre:</strong> {{ ciudadSeleccionada.nombre }}</p>
+        <p><strong>Impuestos:</strong> {{ ciudadSeleccionada.impuestos }}</p>
+        <p><strong>ID:</strong> {{ ciudadSeleccionada.id }}</p>
+
+        <h3>Rutas de salida:</h3>
+      <ul *ngIf="ciudadSeleccionada && ciudadSeleccionada.rutasSalida && ciudadSeleccionada.rutasSalida.length > 0; else noRutas">
+          <li *ngFor="let ruta of ciudadSeleccionada.rutasSalida">
+            ID: {{ ruta.id }} -
+            Distancia: {{ ruta.distancia }} km,
+            Seguridad: {{ ruta.esSegura ? 'Segura' : 'Peligrosa' }},
+            Causa de ataque: {{ ruta.causaAtaque || 'N/A' }}
+          </li>
+        </ul>
+        <ng-template #noRutas>
+          <p>No hay rutas de salida disponibles.</p>
+        </ng-template>
+
+        <h3>Rutas de llegada:</h3>
+        <ul *ngIf="ciudadSeleccionada && ciudadSeleccionada.rutasLlegada && ciudadSeleccionada.rutasLlegada.length > 0; else noRutasLlegada">
+
+          <li
+            *ngFor="let ruta of ciudadSeleccionada.rutasLlegada"
+            (click)="confirmarCambioCiudad(ruta.id, $event)"
+          >
+            ID: {{ ruta.id }} -
+            Distancia: {{ ruta.distancia }} km,
+            Seguridad: {{ ruta.esSegura ? 'Segura' : 'Peligrosa' }},
+            Causa de ataque: {{ ruta.causaAtaque || 'N/A' }}
+          </li>
+        </ul>
+        <ng-template #noRutasLlegada>
+          <p>No hay rutas de llegada disponibles.</p>
+        </ng-template>
+
+        <h3>Productos disponibles:</h3>
+        <ul *ngIf="ciudadSeleccionada && ciudadSeleccionada.productos && ciudadSeleccionada.productos.length > 0; else noProductos">
+
+          <li *ngFor="let producto of ciudadSeleccionada.productos">
+            {{ producto.nombre }} - Categoría: {{ producto.categoria }} - Precio: {{ producto.precioBase }}$
+          </li>
+        </ul>
+        <ng-template #noProductos>
+          <p>No hay productos disponibles.</p>
+        </ng-template>
+      </div>
+    </li>
+  </ul>
+</div>

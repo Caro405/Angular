@@ -7,7 +7,7 @@ import { CiudadDto } from '../dto/ciudad-dto';
   providedIn: 'root'
 })
 export class CiudadService {
-  private baseUrl = 'http://localhost:8080/api/ciudades'; // Ajusta esta URL si tu backend usa otra
+  private baseUrl = 'http://localhost:8080/api/ciudades';
 
   constructor(private http: HttpClient) {}
 

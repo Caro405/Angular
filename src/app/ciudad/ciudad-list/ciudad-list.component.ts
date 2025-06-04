@@ -3,8 +3,7 @@ import { Component, OnInit, Output, EventEmitter, OnDestroy, Input } from '@angu
 import { FormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-
-import { CiudadService } from '../ciudad.service';
+import { CiudadService } from '../../service/ciudad.service';
 import { CiudadDto, ProductoDto } from '../../dto/ciudad-dto';
 import { Caravana } from '../../models/caravana.model';
 import { DetalleVenta } from '../../models/detalle-venta.model';
@@ -17,6 +16,7 @@ import { VentaService } from '../../service/venta.service';
   templateUrl: './ciudad-list.component.html',
   styleUrls: ['./ciudad-list.component.css']
 })
+
 export class CiudadListComponent implements OnInit, OnDestroy {
   @Input() caravana!: Caravana;
   @Output() seleccionCiudad = new EventEmitter<string>();

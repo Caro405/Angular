@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import { CiudadService } from '../../service/ciudad.service';  // Correcto
 import { CiudadListComponent } from './ciudad-list.component';
+
 
 describe('CiudadListComponent', () => {
   let component: CiudadListComponent;

@@ -14,7 +14,10 @@
   <label>Rol:</label>
   <select [(ngModel)]="jugadorActual.rol" class="input">
     <option value="Administrador">Administrador</option>
-    <option value="Chofer">Chofer</option>
+    <option value="COMERCIANTE">COMERCIANTE</option>
+    <option value="CARAVANERO">CARAVANERO</option>
+
+    
   </select>
   <button (click)="continuar()" class="btn">Guardar jugador</button>
 </div>
@@ -27,7 +30,8 @@
 
   <!-- CENTRO -->
   <div class="main-content">
-    <app-ciudad-list (seleccionCiudad)="ciudadActual = $event"></app-ciudad-list>
+    <app-ciudad-list [caravana]="caravana" (seleccionCiudad)="ciudadActual = $event"></app-ciudad-list>
+
   </div>
 
   <!-- DERECHA -->

@@ -11,50 +11,62 @@
 
       <div *ngIf="ciudadSeleccionada && ciudadSeleccionada.id === ciudad.id" class="detalle-ciudad">
         <h3>Detalles de la Ciudad</h3>
-        <p><strong>Nombre:</strong> {{ ciudadSeleccionada.nombre }}</p>
-        <p><strong>Impuestos:</strong> {{ ciudadSeleccionada.impuestos }}</p>
-        <p><strong>ID:</strong> {{ ciudadSeleccionada.id }}</p>
+        <p><strong>Nombre:</strong> {{ ciudadSeleccionada?.nombre }}</p>
+        <p><strong>Impuestos:</strong> {{ ciudadSeleccionada?.impuestos }}</p>
+        <p><strong>ID:</strong> {{ ciudadSeleccionada?.id }}</p>
 
         <h3>Rutas de salida:</h3>
-      <ul *ngIf="ciudadSeleccionada && ciudadSeleccionada.rutasSalida && ciudadSeleccionada.rutasSalida.length > 0; else noRutas">
-          <li *ngFor="let ruta of ciudadSeleccionada.rutasSalida">
-            ID: {{ ruta.id }} -
-            Distancia: {{ ruta.distancia }} km,
-            Seguridad: {{ ruta.esSegura ? 'Segura' : 'Peligrosa' }},
-            Causa de ataque: {{ ruta.causaAtaque || 'N/A' }}
-          </li>
-        </ul>
-        <ng-template #noRutas>
-          <p>No hay rutas de salida disponibles.</p>
-        </ng-template>
+        <ng-container *ngIf="ciudadSeleccionada?.rutasSalida as rutasSalida; else noRutas">
+          <ul *ngIf="rutasSalida.length > 0">
+            <li *ngFor="let ruta of rutasSalida" (click)="confirmarCambioCiudad(ruta.id, $event)" style="cursor:pointer;">
+              ID: {{ ruta.id }} - Distancia: {{ ruta.distancia }} km - Seguridad: {{ ruta.esSegura ? 'Segura' : 'Peligrosa' }} - Causa: {{ ruta.causaAtaque || 'N/A' }}
+            </li>
+          </ul>
+        </ng-container>
+        <ng-template #noRutas><p>No hay rutas de salida disponibles.</p></ng-template>
 
         <h3>Rutas de llegada:</h3>
-        <ul *ngIf="ciudadSeleccionada && ciudadSeleccionada.rutasLlegada && ciudadSeleccionada.rutasLlegada.length > 0; else noRutasLlegada">
+        <ng-container *ngIf="ciudadSeleccionada?.rutasLlegada as rutasLlegada; else noRutasLlegada">
+          <ul *ngIf="rutasLlegada.length > 0">
+            <li *ngFor="let ruta of rutasLlegada" (click)="confirmarCambioCiudad(ruta.id, $event)" style="cursor:pointer;">
+              ID: {{ ruta.id }} - Distancia: {{ ruta.distancia }} km - Seguridad: {{ ruta.esSegura ? 'Segura' : 'Peligrosa' }} - Causa: {{ ruta.causaAtaque || 'N/A' }}
+            </li>
+          </ul>
+        </ng-container>
+        <ng-template #noRutasLlegada><p>No hay rutas de llegada disponibles.</p></ng-template>
 
-          <li
-            *ngFor="let ruta of ciudadSeleccionada.rutasLlegada"
-            (click)="confirmarCambioCiudad(ruta.id, $event)"
-          >
-            ID: {{ ruta.id }} -
-            Distancia: {{ ruta.distancia }} km,
-            Seguridad: {{ ruta.esSegura ? 'Segura' : 'Peligrosa' }},
-            Causa de ataque: {{ ruta.causaAtaque || 'N/A' }}
-          </li>
-        </ul>
-        <ng-template #noRutasLlegada>
-          <p>No hay rutas de llegada disponibles.</p>
-        </ng-template>
+        <h3>🛒 Productos disponibles:</h3>
+        <div *ngFor="let producto of productos" class="producto-item">
+          <span>{{ producto.producto.nombre }} - Categoría: {{ producto.producto.categoria }} - Precio: {{ producto.precio }}$</span>
+          <input type="number" [(ngModel)]="producto.cantidadSeleccionada" min="1" />
+          <button (click)="agregarAlCarrito(producto)">Agregar</button>
+        </div>
+<li
+  *ngFor="let ciudad of ciudades"
+  (click)="mostrarDetalles(ciudad)"
+  [id]="'ciudad-' + ciudad.id"
+  [class.selected]="ciudadSeleccionada?.id === ciudad.id"
+>
 
-        <h3>Productos disponibles:</h3>
-        <ul *ngIf="ciudadSeleccionada && ciudadSeleccionada.productos && ciudadSeleccionada.productos.length > 0; else noProductos">
+        <div *ngIf="carrito.length > 0">
+          <h4>🧾 Carrito</h4>
+          <ul>
+            <li *ngFor="let item of carrito">
+              {{ item.producto.nombre }} x{{ item.cantidad }} - ${{ item.precioUnitario * item.cantidad }}
+            </li>
+          </ul>
+          <p><strong>Total:</strong> ${{ getTotal() }}</p>
+          <button (click)="comprar()">Comprar</button>
+        </div>
 
-          <li *ngFor="let producto of ciudadSeleccionada.productos">
-            {{ producto.nombre }} - Categoría: {{ producto.categoria }} - Precio: {{ producto.precioBase }}$
-          </li>
-        </ul>
-        <ng-template #noProductos>
-          <p>No hay productos disponibles.</p>
-        </ng-template>
+        <div *ngIf="caravana && caravana.inventario && caravana.inventario.productosInventario.length > 0">
+          <h4>📦 Inventario en la Caravana</h4>
+          <ul>
+            <li *ngFor="let pi of caravana.inventario.productosInventario">
+              {{ pi.producto.nombre }}: {{ pi.cantidad }} unidades
+            </li>
+          </ul>
+        </div>
       </div>
     </li>
   </ul>

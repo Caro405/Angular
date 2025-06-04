@@ -1,29 +1,38 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, Output, EventEmitter, OnDestroy } from '@angular/core';
-import { Subject, takeUntil } from 'rxjs';
+import { Component, OnInit, Output, EventEmitter, OnDestroy, Input } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+
 import { CiudadService } from '../ciudad.service';
-import { CiudadDto } from '../../dto/ciudad-dto';
+import { CiudadDto, ProductoDto } from '../../dto/ciudad-dto';
+import { Caravana } from '../../models/caravana.model';
+import { DetalleVenta } from '../../models/detalle-venta.model';
+import { VentaService } from '../../service/venta.service';
 
 @Component({
   selector: 'app-ciudad-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './ciudad-list.component.html',
   styleUrls: ['./ciudad-list.component.css']
 })
-
 export class CiudadListComponent implements OnInit, OnDestroy {
+  @Input() caravana!: Caravana;
+  @Output() seleccionCiudad = new EventEmitter<string>();
+
   ciudades: CiudadDto[] = [];
   ciudadSeleccionada: CiudadDto | null = null;
-  cargando: boolean = false;
-  error: string | null = null;
+  productos: any[] = [];
+  carrito: DetalleVenta[] = [];
 
   private readonly ciudadesMap = new Map<number, CiudadDto>();
   private readonly destroy$ = new Subject<void>();
 
-  @Output() seleccionCiudad = new EventEmitter<string>();
-
-  constructor(private readonly ciudadService: CiudadService) {}
+  constructor(
+    private readonly ciudadService: CiudadService,
+    private readonly ventaService: VentaService
+  ) {}
 
   ngOnInit(): void {
     this.cargarCiudades();
@@ -33,107 +42,122 @@ export class CiudadListComponent implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
   }
+private scrollToCiudad(id: number): void {
+  setTimeout(() => {
+    const target = document.getElementById(`ciudad-${id}`);
+    const container = document.querySelector('.container');
+
+    if (target && container) {
+      const top = target.offsetTop - (container as HTMLElement).offsetTop;
+      (container as HTMLElement).scrollTo({ top, behavior: 'smooth' });
+    }
+  }, 100);
+}
+
 
   private cargarCiudades(): void {
-    this.cargando = true;
-    this.error = null;
-
     this.ciudadService.listarCiudades()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (listaCiudades: CiudadDto[]) => {
-          this.procesarCiudades(listaCiudades);
-          this.cargando = false;
+        next: (lista) => {
+          this.ciudades = lista;
+          this.ciudadesMap.clear();
+          lista.forEach(ciudad => this.ciudadesMap.set(ciudad.id, ciudad));
+          if (this.ciudades.length > 0) {
+            this.mostrarDetalles(this.ciudades[0]);
+          }
         },
-        error: (error) => {
-          this.manejarError('Error al cargar ciudades', error);
-          this.cargando = false;
-        }
+        error: () => alert('Error al cargar ciudades')
       });
   }
 
-  private procesarCiudades(listaCiudades: CiudadDto[]): void {
-    this.ciudades = listaCiudades;
-    this.ciudadesMap.clear();
-    
-    this.ciudades.forEach(ciudad => {
-      if (ciudad?.id) {
-        this.ciudadesMap.set(ciudad.id, ciudad);
-      }
-    });
+mostrarDetalles(ciudad: CiudadDto): void {
+  this.ciudadSeleccionada = ciudad;
+  this.seleccionCiudad.emit(ciudad.nombre);
+  this.productos = ciudad.productos.map(p => ({
+    producto: p,
+    precio: p.precioBase,
+    cantidadSeleccionada: 1
+  }));
+  this.scrollToCiudad(ciudad.id); 
+}
 
-    // Selecciona la primera ciudad por defecto si existe
-    if (this.ciudades.length > 0) {
-      this.mostrarDetalles(this.ciudades[0]);
-    }
-  }
-
-  mostrarDetalles(ciudad: CiudadDto): void {
-    if (!ciudad) {
-      console.warn('Ciudad no válida para mostrar detalles');
-      return;
-    }
-
-    this.ciudadSeleccionada = ciudad;
-    this.seleccionCiudad.emit(ciudad.nombre);
-    this.scrollToCiudad(ciudad.id);
-  }
 
   confirmarCambioCiudad(idCiudadDestino: number, event: MouseEvent): void {
     event.preventDefault();
     event.stopPropagation();
 
-    if (!this.validarIdCiudad(idCiudadDestino)) {
+    const ciudadDestino = this.ciudadesMap.get(idCiudadDestino);
+    if (!ciudadDestino) return;
+
+    const confirmado = confirm(`¿Deseas cambiar a la ciudad ${ciudadDestino.nombre}?`);
+    if (!confirmado) return;
+
+    const ruta = this.ciudadSeleccionada?.rutasSalida?.find(r => r.id === idCiudadDestino)
+             || this.ciudadSeleccionada?.rutasLlegada?.find(r => r.id === idCiudadDestino);
+
+    if (ruta && !ruta.esSegura) {
+      this.restarVidaPorRuta(ruta.causaAtaque);
+      alert(`⚠️ Ruta peligrosa: ${ruta.causaAtaque}. Vida restante: ${this.caravana.puntosVidaActual}`);
+    }
+
+    if (ciudadDestino.impuestos) {
+      this.caravana.dinero -= ciudadDestino.impuestos;
+      alert(`💰 Impuestos pagados: ${ciudadDestino.impuestos}. Dinero restante: ${this.caravana.dinero}`);
+    }
+
+    this.mostrarDetalles(ciudadDestino);
+  }
+
+  restarVidaPorRuta(causa: string): void {
+    if (causa === 'Desastre Natural') this.caravana.puntosVidaActual -= 3;
+    if (causa === 'Bandidos') this.caravana.puntosVidaActual -= 6;
+    if (this.caravana.puntosVidaActual < 0) this.caravana.puntosVidaActual = 0;
+  }
+
+  agregarAlCarrito(producto: any): void {
+    if (!producto.cantidadSeleccionada || producto.cantidadSeleccionada <= 0) {
+      alert('Cantidad inválida');
       return;
     }
 
-   const confirmado = window.confirm(`¿Estás seguro de que quieres cambiar a la ciudad con ID ${idCiudadDestino}?`);
-    
-    if (confirmado) {
-      const ciudadDestino = this.ciudadesMap.get(idCiudadDestino);
-      if (ciudadDestino) {
-        this.mostrarDetalles(ciudadDestino);
+    const detalle: DetalleVenta = {
+      producto: producto.producto,
+      cantidad: producto.cantidadSeleccionada,
+      precioUnitario: producto.precio
+    };
+
+    this.carrito.push(detalle);
+    producto.cantidadSeleccionada = 1;
+  }
+
+  getTotal(): number {
+    return this.carrito.reduce((total, item) => total + item.cantidad * item.precioUnitario, 0);
+  }
+
+  comprar(): void {
+    const total = this.getTotal();
+
+    if (this.caravana.dinero < total) {
+      alert('Dinero insuficiente.');
+      return;
+    }
+
+    this.caravana.dinero -= total;
+
+    this.carrito.forEach(item => {
+      const encontrado = this.caravana.inventario.productosInventario.find(pi => pi.producto.id === item.producto.id);
+      if (encontrado) {
+        encontrado.cantidad += item.cantidad;
       } else {
-        this.mostrarMensaje('Ciudad destino no encontrada.');
-      }
-    }
-  }
-
-  private validarIdCiudad(id: number): boolean {
-    if (!id || id <= 0) { 
-      this.mostrarMensaje('ID de ciudad no válido.');
-      return false;
-    }
-    return true;
-  }
-
-  private scrollToCiudad(id: number): void {
-    if (!id) return;
-
-    setTimeout(() => {
-      const elemento = document.getElementById(`ciudad-${id}`);
-      if (elemento) {
-        elemento.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'center',
-          inline: 'nearest'
+        this.caravana.inventario.productosInventario.push({
+          producto: item.producto,
+          cantidad: item.cantidad
         });
       }
-    }, 100); // Aumentado el timeout para mejor rendimiento
-  }
+    });
 
-  private manejarError(mensaje: string, error: any): void {
-    console.error(mensaje, error);
-    this.error = mensaje;
-  }
-
-  private mostrarMensaje(mensaje: string): void {
-    // Podrías reemplazar alert con un servicio de notificaciones más elegante
-    alert(mensaje);
-  }
-
-  // Método público para recargar ciudades si es necesario
-  recargarCiudades(): void {
-    this.cargarCiudades();
+    alert(`Compra realizada por $${total}`);
+    this.carrito = [];
   }
 }

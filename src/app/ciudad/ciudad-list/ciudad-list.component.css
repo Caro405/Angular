@@ -9,6 +9,9 @@
   box-sizing: border-box;
   min-height: 100vh;
   overflow-y: visible;
+  max-height: 500px;
+  overflow-y: auto;
+  scroll-behavior: smooth;
 }
 
 h1 {

@@ -22,13 +22,22 @@ export class RutaDto {
   esSegura: boolean;
   ataque: number;
   causaAtaque: string;
+  destino: number;  // ✅ <- Agrega esta propiedad
 
-  constructor(id: number, distancia: number, esSegura: boolean, ataque: number, causaAtaque: string) {
+  constructor(
+    id: number,
+    distancia: number,
+    esSegura: boolean,
+    ataque: number,
+    causaAtaque: string,
+    destino: number  // ✅ <- Agrégalo también al constructor
+  ) {
     this.id = id;
     this.distancia = distancia;
     this.esSegura = esSegura;
     this.ataque = ataque;
     this.causaAtaque = causaAtaque;
+    this.destino = destino;
   }
 }
 
@@ -37,11 +46,22 @@ export class ProductoDto {
   nombre: string;
   categoria: string;
   precioBase: number;
+  factorOferta: number;
+  factorDemanda: number;
 
-  constructor(id: number, nombre: string, categoria: string, precioBase: number) {
+  constructor(
+    id: number,
+    nombre: string,
+    categoria: string,
+    precioBase: number,
+    factorOferta: number,
+    factorDemanda: number
+  ) {
     this.id = id;
     this.nombre = nombre;
     this.categoria = categoria;
     this.precioBase = precioBase;
+    this.factorOferta = factorOferta;
+    this.factorDemanda = factorDemanda;
   }
 }

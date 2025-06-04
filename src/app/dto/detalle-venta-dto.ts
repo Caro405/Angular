@@ -1,7 +1,7 @@
-import { Producto } from '../producto/producto.model';
+import { ProductoDto } from './ciudad-dto';
 
 export interface DetalleVenta {
-  producto: Producto;
+  producto: ProductoDto;
   cantidad: number;
   precioUnitario: number;
 }
